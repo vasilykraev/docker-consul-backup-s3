@@ -1,19 +1,19 @@
-#! /bin/bash
+#!/bin/bash
 set -e
 
 help () {
   echo "consul-backup"
-  echo "Backups consul to a s3 bucket. You must provde all 4 arguments"
+  echo "Backups or restore consul to s3"
   echo
-  echo "Usage: consul-backup -h CONSUL_HOST -p CONSUL_PORT -b somebucketname"
+  echo "Usage: consul-backup backup -h http://127.0.0.1:8500 -b somebucketname -f prefix"
   echo
-  echo "-h | --host     - The Consul Host"
-  echo "-p | --port     - The Consul Port"
+  echo "backup | restore - Operation mode" 
+  echo "-h | --host     - The Consul Host Address"
   echo "-b | --s3bucket  - The s3 bucket path to use, no trailing slash"
   echo "-f | --filename  - The prefix for the filename."
 }
 
-if [[ $# -ne 8 ]] ; then
+if [[ $# -ne 7 ]] ; then
     echo 'ERROR: All 4 arguments must be specified'
     help
     exit 1
@@ -25,12 +25,16 @@ do
 key="$1"
 
 case $key in
-    -h|--host)
-    API_HOST="$2"
+    backup)
+    OPERATION_MODE='backup'
     shift
     ;;
-    -p|--port)
-    API_PORT="$2"
+    restore)
+    OPERATION_MODE='restore'
+    shift
+    ;;
+    -h|--host)
+    API_HOST="$2"
     shift
     ;;
     -b|--s3bucket)
@@ -38,7 +42,7 @@ case $key in
     shift
     ;;
     -f|--filename)
-    FILENAME="$2"$(date +%F_%R)
+    FILENAME="$2"-$(date +%F_%R).snap
     shift
     ;;
     *)
@@ -48,15 +52,35 @@ shift
 done
 
 echo APIHOST = "{$API_HOST}"
-echo API_PORT = "{$API_PORT}"
 echo S3_URL = "{$S3_URL}"
 echo FILENAME = "{$FILENAME}"
 
-#Dump Keys
-consulate --api-host "$API_HOST" --api-port "$API_PORT" kv backup -b -f "$FILENAME"
+doBackup() {
+  echo "Performing a backup"
+  #create snapshot
+  consul snapshot save "$FILENAME"
 
-#Upload to s3
-aws s3 cp "$FILENAME" "$S3_URL/$FILENAME"
+  #Upload to s3
+  aws s3 cp "$FILENAME" "$S3_URL/$FILENAME"
 
-#Remove file
-rm "$FILENAME"
+  #Remove file
+  rm "$FILENAME"
+}
+
+doRestore() {
+  echo "Performing a restoration"
+}
+
+case $OPERATION_MODE in
+  backup)
+  doBackup
+  ;;
+  restore)
+  doRestore
+  ;;
+  *)
+  echo "ERROR: say backup or restore in arguments"
+  exit 1
+  ;;
+esac
+
