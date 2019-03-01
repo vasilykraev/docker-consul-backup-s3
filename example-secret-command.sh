@@ -1,0 +1,1 @@
+$ kubectl create secret generic consul-backup-aws --from-file=./.aws/config --from-file=./.aws/credentials
