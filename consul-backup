@@ -5,15 +5,15 @@ help () {
   echo "consul-backup"
   echo "Backups or restore consul to s3"
   echo
-  echo "Usage: consul-backup backup -h http://127.0.0.1:8500 -b somebucketname -f prefix"
+  echo "Usage: consul-backup -m backup -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -f prefix"
   echo
-  echo "backup | restore - Operation mode" 
+  echo "-m backup | restore - Operation mode" 
   echo "-h | --host     - The Consul Host Address"
   echo "-b | --s3bucket  - The s3 bucket path to use, no trailing slash"
   echo "-f | --filename  - The prefix for the filename."
 }
 
-if [[ $# -ne 7 ]] ; then
+if [[ $# -ne 8 ]] ; then
     echo 'ERROR: All 4 arguments must be specified'
     help
     exit 1
@@ -22,49 +22,48 @@ fi
 
 while [[ $# > 1 ]]
 do
-key="$1"
-
-case $key in
-    backup)
-    OPERATION_MODE='backup'
-    shift
-    ;;
-    restore)
-    OPERATION_MODE='restore'
-    shift
-    ;;
-    -h|--host)
-    API_HOST="$2"
-    shift
-    ;;
-    -b|--s3bucket)
-    S3_URL="$2"
-    shift
-    ;;
-    -f|--filename)
-    FILENAME="$2"-$(date +%F_%R).snap
-    shift
-    ;;
-    *)
-    ;;
-esac
+  key="$1"
+  case $key in
+      -m|--mode)
+      OPERATION_MODE="$2"
+      shift
+      ;;
+      -h|--host)
+      API_HOST="$2"
+      shift
+      ;;
+      -b|--s3bucket)
+      S3_URL="$2"
+      shift
+      ;;
+      -f|--filename)
+      FILENAME="$2"-$(date +%F_%R).snap
+      shift
+      ;;
+      *)
+      ;;
+  esac
 shift
 done
 
+echo OPERATION_MODE = "{$OPERATION_MODE}"
 echo APIHOST = "{$API_HOST}"
 echo S3_URL = "{$S3_URL}"
 echo FILENAME = "{$FILENAME}"
 
 doBackup() {
+  echo
   echo "Performing a backup"
   #create snapshot
-  consul snapshot save "$FILENAME"
-
+  consul snapshot save -http-addr=$API_HOST "$FILENAME"
+  echo "File $FILENAME created. Uploading..."
   #Upload to s3
+  echo "Uploading $FILENAME to $S3_URL/$FILENAME"
   aws s3 cp "$FILENAME" "$S3_URL/$FILENAME"
-
+  echo "File $FILENAME uploaded. Removing.."
   #Remove file
   rm "$FILENAME"
+  echo "Backup sucessfull"
 }
 
 doRestore() {
@@ -79,7 +78,7 @@ case $OPERATION_MODE in
   doRestore
   ;;
   *)
-  echo "ERROR: say backup or restore in arguments"
+  echo "ERROR: pass operation mode (-m). Valid arguments: backup | restore"
   exit 1
   ;;
 esac
