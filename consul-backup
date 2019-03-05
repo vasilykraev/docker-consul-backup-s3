@@ -68,6 +68,8 @@ doBackup() {
 
 doRestore() {
   echo "Performing a restoration"
+  echo "Not implemented"
+  exit 1
 }
 
 case $OPERATION_MODE in
