@@ -18,7 +18,7 @@ spec:
               - backup
               - -h
               - http://192.168.0.11:8500
-              - -f
+              - -p
               - test 
               - -b 
               - s3://my-bucket/backups

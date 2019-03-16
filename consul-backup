@@ -5,16 +5,19 @@ help () {
   echo "consul-backup"
   echo "Backups or restore consul to s3"
   echo
-  echo "Usage: consul-backup -m backup -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -f prefix"
+  echo "Usage: consul-backup -m backup -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -p prefix"
+  echo "Usage: consul-backup -m restore -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -f prefix-"
   echo
   echo "-m backup | restore - Operation mode" 
   echo "-h | --host     - The Consul Host Address"
   echo "-b | --s3bucket  - The s3 bucket path to use, no trailing slash"
-  echo "-f | --filename  - The prefix for the filename."
+  echo "-p | --prefix  - The prefix for the filename. Dont use with -f"
+  echo "-f | --filename - The full filename to restore. Dont use with -p"
 }
 
 if [[ $# -ne 8 ]] ; then
     echo 'ERROR: All 4 arguments must be specified'
+    echo 'For filename you must use or -p for backup prefix or -f for full name in restore'
     help
     exit 1
 fi
@@ -36,8 +39,12 @@ do
       S3_URL="$2"
       shift
       ;;
-      -f|--filename)
+      -p|--prefix)
       FILENAME="$2"-$(date +%F_%R).snap
+      shift
+      ;;
+      -f|--filename)
+      FILENAME="$2"
       shift
       ;;
       *)
@@ -68,8 +75,15 @@ doBackup() {
 
 doRestore() {
   echo "Performing a restoration"
-  echo "Not implemented"
-  exit 1
+  echo "Downloading $S3_URL/$FILENAME"
+
+  aws s3 cp "$S3_URL/$FILENAME" "$FILENAME"
+  consul snapshot restore -http-addr=$API_HOST "$FILENAME" 
+
+  echo "Snapshot completed. Removing $FILENAME ..."
+  #Remove file
+  rm "$FILENAME"
+  echo "Restore sucessfull"
 }
 
 case $OPERATION_MODE in
