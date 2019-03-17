@@ -6,7 +6,7 @@ help () {
   echo "Backups or restore consul to s3"
   echo
   echo "Usage: consul-backup -m backup -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -p prefix"
-  echo "Usage: consul-backup -m restore -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -f prefix-"
+  echo "Usage: consul-backup -m restore -h http://127.0.0.1:8500 -b s3://somebucket/backups/ -f prefix-2019-03-09_01:39.snap"
   echo
   echo "-m backup | restore - Operation mode" 
   echo "-h | --host     - The Consul Host Address"

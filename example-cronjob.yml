@@ -1,5 +1,5 @@
 # Create a aws-credentials secret that will be mounted in /root/.aws
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: consul-backup

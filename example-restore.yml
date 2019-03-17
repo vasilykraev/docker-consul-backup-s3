@@ -1,0 +1,31 @@
+# Create a aws-credentials secret that will be mounted in /root/.aws
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: consul-restore
+spec:
+  template:
+    spec:
+      containers:
+      - name: consul-backup
+        image: giovannicandido/consul-backup-s3
+        args:
+          - -m 
+          - restore
+          - -h
+          - http://192.168.0.11:8500
+          - -f
+          - prefix-2019-03-09_01:39.snap
+          - -b 
+          - s3://my-bucket/backups
+        volumeMounts:
+          - name: aws-credentials
+          mountPath: /root/.aws
+          readOnly: true
+      volumes:
+      - name: aws-credentials
+        secret:
+          secretName: consul-backup-aws
+      restartPolicy: OnFailure
+  backoffLimit: 4  
+          
