@@ -78,6 +78,7 @@ doRestore() {
   echo "Downloading $S3_URL/$FILENAME"
 
   aws s3 cp "$S3_URL/$FILENAME" "$FILENAME"
+  echo "Restoring..."
   consul snapshot restore -http-addr=$API_HOST "$FILENAME" 
 
   echo "Snapshot completed. Removing $FILENAME ..."
