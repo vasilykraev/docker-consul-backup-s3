@@ -116,7 +116,7 @@ spec:
 How to create a Cron backup job
 
 ```yaml
-apiVersion: batch/v1
+apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: consul-backup
@@ -140,8 +140,8 @@ spec:
               - -b 
               - s3://my-bucket/backups
             volumeMounts:
-              - name: aws-credentials
-              mountPath: /root/.aws
+            - mountPath: /root/.aws
+              name: aws-credentials
               readOnly: true
           volumes:
           - name: aws-credentials
