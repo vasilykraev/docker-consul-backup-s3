@@ -13,8 +13,8 @@ RUN apk --update --no-cache add \
     && apk del py3-pip \
     && rm -rf /var/cache/apk/* /root/.cache/pip/* /usr/lib/python3/site-packages/awscli/examples
 
-#ADD consul-backup /usr/bin/consul-backup
-#RUN chmod +x /usr/bin/consul-backup
+ADD consul-backup /usr/bin/consul-backup
+RUN chmod +x /usr/bin/consul-backup
 
 # Expose .aws to mount config/credentials
 VOLUME /root/.aws
