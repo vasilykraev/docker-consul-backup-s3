@@ -8,9 +8,8 @@ RUN apk --update --no-cache add \
     py3-pip \
     jq \
     bash \
-    && pip install --no-cache-dir awscli==$AWS_CLI_VERSION \
-    && pip3 install --no-cache-dir awscli \
-    && apk del py3-pip \
+    && pip3 install --upgrade pip \
+    && pip3 install --no-cache-dir awscli==$AWS_CLI_VERSION \
     && rm -rf /var/cache/apk/* /root/.cache/pip/* /usr/lib/python3/site-packages/awscli/examples
 
 ADD consul-backup /usr/bin/consul-backup
